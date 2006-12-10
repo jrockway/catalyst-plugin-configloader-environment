@@ -2,10 +2,13 @@ package Catalyst::Plugin::ConfigLoader::Environment;
 
 use warnings;
 use strict;
+use Catalyst::Utils;
+use NEXT;
 
 =head1 NAME
 
-Catalyst::Plugin::ConfigLoader::Environment - The great new Catalyst::Plugin::ConfigLoader::Environment!
+Catalyst::Plugin::ConfigLoader::Environment - Configure your
+application with environment variables.
 
 =head1 VERSION
 
@@ -17,35 +20,111 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Catalyst::Plugin::ConfigLoader::Environment reads environment
+variables and sets up the configuration in your application
+accordingly.
 
-Perhaps a little code snippet.
+Here's how you use it:
 
-    use Catalyst::Plugin::ConfigLoader::Environment;
+    package MyApp;
+    use Catalyst qw(... ConfigLoader::Environment ...);
+    MyApp->setup;
 
-    my $foo = Catalyst::Plugin::ConfigLoader::Environment->new();
-    ...
+Then, before you run your application, set some environment
+variables:
 
-=head1 EXPORT
+    export MYAPP_foo='Hello, world!'
+    export MYAPP_bar="foobar"
+    perl script/myapp_server.pl
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+Inside your application, C<< $c->config->{foo} >> will be equal to
+C<Hello, world!>, and C<< $c->config->{bar} >> will be equal to
+C<foobar>.
+
+=head2 Compatibility with ConfigLoader
+
+You can use both ConfigLoader and this module in the same application.
+If you specify C<ConfigLoader> before C<ConfigLoader::Environment> in
+the import list to Catalyst, the environment will override any
+configuration files that ConfigLoader may find.  This is the
+recommended setup.
+
+You can reverse the order in the import list if you want static config
+files to override the environment, but that's not recommended.
+
+=head1 DETAILS
+
+Here's exactly how environment variables are translated into
+configuration.
+
+First, your application's name is converted to ALL CAPS, any colons
+are converted to underscores (i.e. C<My::App> is translated to
+C<MY_APP>), and a C<_> is appended.  Then, any environment variables
+not starting with this prefix are discarded.
+
+The prefix is then stripped, and the remaining variables are then
+converted to elements in the C<config> hash as follows.
+
+Variables starting with C<Model::>, C<View::>, or C<Controller::> and
+then any character other than C<_> are treated as configuration
+options for the corresponding component of your application.  The
+prefix is saved as C<prefix> and everything after the first C<_> is
+used as a key into the C<< $c->config->{"prefix"} >> hash.
+
+Any other variables not starting with a special prefix are added
+directly to the C<< $c->config >> hash.
+
+=head1 EXAMPLES
+
+Let's translate a YAML config file:
+
+    ---
+    name: MyApp
+    title: This is My App!
+    View::Foo:
+      EXTENSION: tt
+      EVAL_PERL: 1
+    Model::Bar:
+      root: "/etc"
+
+into environment variables that would setup the same configuration:
+
+    MYAPP_name=MyApp
+    MYAPP_title=This is My App!
+    MYAPP_View::Foo_EXTENSION=tt
+    MYAPP_View::Foo_EVAL_PERL=1
+    MYAPP_Model::Bar_root=/etc
+
+Note that C<bash> can't seem to deal with colons in the names of
+environment variables, so it's best to use something less braindead
+like C<envdir> from C<daemontools> to create them for you.
 
 =head1 FUNCTIONS
 
-=head2 function1
+=head2 setup
+
+Overriding Catalyst' setup routine.
 
 =cut
 
-sub function1 {
+sub setup {
+    my $c = shift;
+    my $prefix = Catalyst::Utils::class2env(ref $c);
+
+    my @variables = map { $1 } grep { /^${prefix}[_](.+)$/ } keys %ENV;
+    
+    foreach my $var (@variables) {
+	if($var =~ /(Model|View|Controller)::([^_]+)_(.+)$/){
+	    $c->config->{"$1::$2"}->{$3} = $ENV{$var}; 
+	}
+	else {
+	    $c->config->{$var} = $ENV{$var};
+	}
+    }
+    
+    return $c->NEXT::setup(@_);
 }
 
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
@@ -69,25 +148,19 @@ You can also look for information at:
 
 =over 4
 
-=item * AnnoCPAN: Annotated CPAN documentation
+=item * Catalyst Mailing List
 
-L<http://annocpan.org/dist/Catalyst-Plugin-ConfigLoader-Environment>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Catalyst-Plugin-ConfigLoader-Environment>
+L<mailto:catalyst@lists.rawmode.org>.
 
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Catalyst-Plugin-ConfigLoader-Environment>
 
-=item * Search CPAN
+=item * My Trac site
 
-L<http://search.cpan.org/dist/Catalyst-Plugin-ConfigLoader-Environment>
+L<http://trac.jrock.us/cpan_modules/>
 
 =back
-
-=head1 ACKNOWLEDGEMENTS
 
 =head1 COPYRIGHT & LICENSE
 
@@ -95,6 +168,9 @@ Copyright 2006 Jonathan Rockway, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
+
+If you'd like to use it under a different license, that's probably OK.
+Please contact the author.
 
 =cut
 

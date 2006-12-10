@@ -5,7 +5,7 @@ use inc::Module::Install;
 name('Catalyst-Plugin-ConfigLoader-Environment');
 author('Jonathan Rockway <jrockway@cpan.org');
 all_from('lib/Catalyst/Plugin/ConfigLoader/Environment.pm');
-license('MIT');
+license('Perl');
 include('ExtUtils::AutoInstall');
 
 requires('Catalyst' => '5.7000');
