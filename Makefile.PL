@@ -8,12 +8,8 @@ all_from('lib/Catalyst/Plugin/ConfigLoader/Environment.pm');
 license('MIT');
 include('ExtUtils::AutoInstall');
 
-requires(
-         'Catalyst' => '5.7000'
-        );
-build_requires(
-	       'Test::More' => 0
-	      );
+requires('Catalyst' => '5.7000');
+build_requires('Test::More' => 0);
 
 auto_install();
 WriteAll();
