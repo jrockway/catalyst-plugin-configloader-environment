@@ -1,16 +1,19 @@
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'Catalyst::Plugin::ConfigLoader::Environment',
-    AUTHOR              => 'Jonathan Rockway <jrockway@cpan.org>',
-    VERSION_FROM        => 'lib/Catalyst/Plugin/ConfigLoader/Environment.pm',
-    ABSTRACT_FROM       => 'lib/Catalyst/Plugin/ConfigLoader/Environment.pm',
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Test::More' => 0,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Catalyst-Plugin-ConfigLoader-Environment-*' },
-);
+name('Catalyst-Plugin-ConfigLoader-Environment');
+author('Jonathan Rockway <jrockway@cpan.org');
+all_from('lib/Catalyst/Plugin/ConfigLoader/Environment.pm');
+license('MIT');
+include('ExtUtils::AutoInstall');
+
+requires(
+         'Catalyst' => '5.7000'
+        );
+build_requires(
+	       'Test::More' => 0
+	      );
+
+auto_install();
+WriteAll();
