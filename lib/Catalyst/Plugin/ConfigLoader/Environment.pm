@@ -112,9 +112,7 @@ sub setup {
     my $prefix = Catalyst::Utils::class2env($c);
     my %env;
     grep { /^${prefix}[_](.+)$/ && ($env{$1}=$ENV{$_})} keys %ENV;
-    
-    warn "prefix is $prefix";
-    
+
     foreach my $var (keys %env) {
 	if($var =~ /(Model|View|Controller)::([^_]+)_(.+)$/){
 	    $c->config->{"$1::$2"}->{$3} = $env{"$var"}; 
