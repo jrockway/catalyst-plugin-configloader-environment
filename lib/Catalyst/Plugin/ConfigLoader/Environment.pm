@@ -109,16 +109,18 @@ Overriding Catalyst' setup routine.
 
 sub setup {
     my $c = shift;
-    my $prefix = Catalyst::Utils::class2env(ref $c);
-
-    my @variables = map { $1 } grep { /^${prefix}[_](.+)$/ } keys %ENV;
+    my $prefix = Catalyst::Utils::class2env($c);
+    my %env;
+    grep { /^${prefix}[_](.+)$/ && ($env{$1}=$ENV{$_})} keys %ENV;
     
-    foreach my $var (@variables) {
+    warn "prefix is $prefix";
+    
+    foreach my $var (keys %env) {
 	if($var =~ /(Model|View|Controller)::([^_]+)_(.+)$/){
-	    $c->config->{"$1::$2"}->{$3} = $ENV{$var}; 
+	    $c->config->{"$1::$2"}->{$3} = $env{"$var"}; 
 	}
 	else {
-	    $c->config->{$var} = $ENV{$var};
+	    $c->config->{$var} = $env{$var};
 	}
     }
     
