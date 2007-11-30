@@ -14,8 +14,8 @@ sub default : Private {
 }
 
 sub foo : Local { 
-    my ($self, $c) = @_;
-    my $result = $c->view('TestView')->foo;
+    my ($self, $c, $varname) = @_;
+    my $result = $c->view('TestView')->$varname;
     $c->res->body($result);
 }
   

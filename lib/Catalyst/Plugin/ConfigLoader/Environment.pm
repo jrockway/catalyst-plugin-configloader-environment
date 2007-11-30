@@ -91,13 +91,13 @@ into environment variables that would setup the same configuration:
 
     MYAPP_name=MyApp
     MYAPP_title=This is My App!
-    MYAPP_View::Foo_EXTENSION=tt
-    MYAPP_View::Foo_EVAL_PERL=1
-    MYAPP_Model::Bar_root=/etc
+    MYAPP_View__Foo_EXTENSION=tt
+    MYAPP_View__Foo_EVAL_PERL=1
+    MYAPP_Model__Bar_root=/etc
 
-Note that C<bash> can't seem to deal with colons in the names of
-environment variables, so it's best to use something less braindead
-like C<envdir> from C<daemontools> to create them for you.
+Double colons are converted into double underscores.  For
+compatibility's sake, support for the 0.01-style use of
+bourne-incompatible variable names is retained.
 
 =head1 FUNCTIONS
 
@@ -114,7 +114,7 @@ sub setup {
     grep { /^${prefix}[_](.+)$/ && ($env{$1}=$ENV{$_})} keys %ENV;
 
     foreach my $var (keys %env) {
-	if($var =~ /(Model|View|Controller)::([^_]+)_(.+)$/){
+	if($var =~ /(Model|View|Controller)(?:__|::)([^_]+)_(.+)$/){
 	    $c->config->{"$1::$2"}->{$3} = $env{"$var"}; 
 	}
 	else {

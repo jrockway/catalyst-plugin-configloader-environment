@@ -5,8 +5,9 @@
 package TestApp::View::TestView;
 use base 'Catalyst::View';
 
-sub foo {
-    return $_[0]->{foo};
+sub AUTOLOAD {
+    our $AUTOLOAD =~ s{.*::}{};
+    return $_[0]->{$AUTOLOAD};
 }
 
 1;
