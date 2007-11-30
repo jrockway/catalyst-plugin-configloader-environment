@@ -86,6 +86,8 @@ Let's translate a YAML config file:
       EVAL_PERL: 1
     Model::Bar:
       root: "/etc"
+    Model::DBIC:
+      connect_info: [ "dbi:Pg:dbname=foo" ]
 
 into environment variables that would setup the same configuration:
 
@@ -94,10 +96,14 @@ into environment variables that would setup the same configuration:
     MYAPP_View__Foo_EXTENSION=tt
     MYAPP_View__Foo_EVAL_PERL=1
     MYAPP_Model__Bar_root=/etc
+    MYAPP_Model__DBIC_connect_info=["dbi:Pg:dbname=foo"]
 
 Double colons are converted into double underscores.  For
 compatibility's sake, support for the 0.01-style use of
 bourne-incompatible variable names is retained.
+
+The last one should only be passed JSON.  If JSON.pm is not found,
+then YAML.pm will be used instead.
 
 =head1 FUNCTIONS
 
@@ -114,8 +120,21 @@ sub setup {
     grep { /^${prefix}[_](.+)$/ && ($env{$1}=$ENV{$_})} keys %ENV;
 
     foreach my $var (keys %env) {
-	if($var =~ /(Model|View|Controller)(?:__|::)([^_]+)_(.+)$/){
-	    $c->config->{"$1::$2"}->{$3} = $env{"$var"}; 
+	if($var =~ /(Model|View|Controller)(?:::|__)([^_]+)_(.+)$/){
+	    my $comp = "${1}::$2";
+	    my $item = $3;
+	    my $val = $env{"$var"};
+	    if ($val =~ m{^[\[\{]}) {
+	    	eval { require JSON; };
+		if ($@) {
+		    require YAML;
+		    $val = YAML::Load($val);
+		}
+		else {
+		    $val = JSON::jsonToObj($val);
+		}
+	    }
+	    $c->config->{$comp}{$item} = $val;
 	}
 	else {
 	    $c->config->{$var} = $env{$var};
