@@ -1,5 +1,11 @@
 Revision history for Catalyst-Plugin-ConfigLoader-Environment
 
+0.03    12 January 2008
+        Fix some problems the CPAN testers uncovered
+
+0.02    12 January 2008
+        Add YAML/JSON support from mugwump
+
 0.01    9 December 2006
         First version, released on an unsuspecting world.
 

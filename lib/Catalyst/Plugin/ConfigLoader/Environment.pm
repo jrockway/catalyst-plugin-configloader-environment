@@ -128,7 +128,7 @@ sub setup {
 	    	eval { require JSON; };
 		if ($@) {
 		    require YAML;
-		    $val = YAML::Load($val);
+		    $val = YAML::Load("$val\n");
 		}
 		else {
 		    $val = JSON::jsonToObj($val);
