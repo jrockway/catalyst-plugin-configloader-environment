@@ -12,11 +12,11 @@ application with environment variables.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -87,7 +87,7 @@ Let's translate a YAML config file:
     Model::Bar:
       root: "/etc"
     Model::DBIC:
-      connect_info: [ "dbi:Pg:dbname=foo" ]
+      connect_info: [ "dbi:Pg:dbname=foo", "username", "password" ]
 
 into environment variables that would setup the same configuration:
 
@@ -96,7 +96,7 @@ into environment variables that would setup the same configuration:
     MYAPP_View__Foo_EXTENSION=tt
     MYAPP_View__Foo_EVAL_PERL=1
     MYAPP_Model__Bar_root=/etc
-    MYAPP_Model__DBIC_connect_info=["dbi:Pg:dbname=foo"]
+    MYAPP_Model__DBIC_connect_info=["dbi:Pg:dbname=foo", "username", "password"]
 
 Double colons are converted into double underscores.  For
 compatibility's sake, support for the 0.01-style use of
@@ -174,10 +174,6 @@ L<mailto:catalyst@lists.rawmode.org>.
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Catalyst-Plugin-ConfigLoader-Environment>
-
-=item * My Trac site
-
-L<http://trac.jrock.us/cpan_modules/>
 
 =back
 
