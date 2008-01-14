@@ -3,7 +3,7 @@ package Catalyst::Plugin::ConfigLoader::Environment;
 use warnings;
 use strict;
 use Catalyst::Utils;
-use NEXT;
+use JSON::Any;
 
 =head1 NAME
 
@@ -12,11 +12,11 @@ application with environment variables.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -102,8 +102,7 @@ Double colons are converted into double underscores.  For
 compatibility's sake, support for the 0.01-style use of
 bourne-incompatible variable names is retained.
 
-The last one should only be passed JSON.  If JSON.pm is not found,
-then YAML.pm will be used instead.
+The last one should only be passed JSON.
 
 =head1 FUNCTIONS
 
@@ -125,14 +124,7 @@ sub setup {
 	    my $item = $3;
 	    my $val = $env{"$var"};
 	    if ($val =~ m{^[\[\{]}) {
-	    	eval { require JSON; };
-		if ($@) {
-		    require YAML;
-		    $val = YAML::Load("$val\n");
-		}
-		else {
-		    $val = JSON::jsonToObj($val);
-		}
+                $val = JSON::Any->jsonToObj($val);
 	    }
 	    $c->config->{$comp}{$item} = $val;
 	}
