@@ -2,7 +2,6 @@ package Catalyst::Plugin::ConfigLoader::Environment;
 
 use warnings;
 use strict;
-use Catalyst::Utils;
 use JSON::Any;
 
 =head1 NAME
@@ -16,7 +15,7 @@ Version 0.04
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.04_01';
 
 =head1 SYNOPSIS
 
@@ -102,7 +101,15 @@ Double colons are converted into double underscores.  For
 compatibility's sake, support for the 0.01-style use of
 bourne-incompatible variable names is retained.
 
-The last one should only be passed JSON.
+Values are JSON-decoded if they look like JSON arrays or objects
+(i.e. if they're enclosed in []s or {}s). Taking advantage of that, we
+can write the same example this way:
+
+    MYAPP_name=MyApp
+    MYAPP_title=This is My App!
+    MYAPP_View__Foo={"EXTENSION":"tt","EVAL_PERL":1}
+    MYAPP_Model__Bar={"root":"/etc"}
+    MYAPP_Model__DBIC={"connect_info":["dbi:Pg:dbname=foo", "username", "password"]}
 
 =head1 FUNCTIONS
 
@@ -119,18 +126,27 @@ sub setup {
     grep { /^${prefix}[_](.+)$/ && ($env{$1}=$ENV{$_})} keys %ENV;
 
     foreach my $var (keys %env) {
-	if($var =~ /(Model|View|Controller)(?:::|__)([^_]+)_(.+)$/){
-	    my $comp = "${1}::$2";
-	    my $item = $3;
-	    my $val = $env{"$var"};
-	    if ($val =~ m{^[\[\{]}) {
-                $val = JSON::Any->jsonToObj($val);
-	    }
-	    $c->config->{$comp}{$item} = $val;
-	}
-	else {
-	    $c->config->{$var} = $env{$var};
-	}
+        my $val = $env{$var};
+
+        # Decode JSON array/object 
+        if ( $val =~ m{^\[.*\]$|^\{.*\}$} ) {
+            $val = JSON::Any->jsonToObj($val);
+        }
+
+        # Special syntax Model__Foo is equivalent to Model::Foo
+        if($var =~ /(Model|View|Controller)(?:::|__)([^_]+)(?:_(.+))?$/) {
+            $var = "${1}::$2";
+
+            # Special syntax Model__Foo_bar (or Model::Foo_bar) will
+            # tweak just the 'bar' subparam for Model::Foo's
+            # config. We can accomplish this using a hash that
+            # specifies just 'bar' ($c->config will merge hashes).
+            if ( defined $3 ) {
+                $val = { $3 => $val };
+            }
+        }
+
+        $c->config( $var => $val );
     }
     
     return $c->NEXT::setup(@_);
@@ -140,6 +156,12 @@ sub setup {
 =head1 AUTHOR
 
 Jonathan Rockway, C<< <jrockway at cpan.org> >>
+
+=head1 CONTRIBUTORS
+
+mugwump
+
+Ryan D Johnson, C<< <ryan at innerfence.com> >>
 
 =head1 BUGS
 

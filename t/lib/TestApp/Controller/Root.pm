@@ -13,7 +13,7 @@ sub default : Private {
     $c->res->body(Dumper($c->config));
 }
 
-sub foo : Local { 
+sub foo : Local {
     my ($self, $c, $varname) = @_;
     my $result = $c->view('TestView')->$varname;
     if (ref $result) {
@@ -25,5 +25,11 @@ sub foo : Local {
     }
     $c->res->body($result);
 }
+
+sub model : Local {
+    my ( $self, $c, $varname ) = @_;
+    $c->res->body(Dumper(\%{$c->model('TestModel')}));
+}
+
   
 1;
