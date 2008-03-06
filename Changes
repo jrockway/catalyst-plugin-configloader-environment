@@ -1,6 +1,6 @@
 Revision history for Catalyst-Plugin-ConfigLoader-Environment
 
-0.05    Unreleased
+0.05    6 March 2008
         - Allow top-level ::-params (Model__Foo, not just Model__Foo_bar)
         - Allow JSON for all values (not just Model__Foo_bar)
         - Use $c->config() instead of tweaking config directly (get merge_hashes for free)
