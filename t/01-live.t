@@ -49,5 +49,6 @@ is_deeply($model_attributes,
           {
               foo => 'bar', # From __PACKAGE__ default config
               bar => 'baz', # Merged from my environment hash
+              catalyst_component_name => 'TestApp::Model::TestModel',
           },
           'JSON for top-level :: param with hash merge');
